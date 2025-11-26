@@ -147,10 +147,14 @@ fun CrimeApp(
                     navHostController = navHostController
                 )
             }
+            composable(route = CrimeAppScreen.Report.name){
+                ReportScreen(crimeViewModel = crimeViewModel, navHostController = navHostController)
+            }
         }
 
         if (logoutClicked){
             AlertCheck(onYesButtonPressed = {
+                crimeViewModel.setLogoutStatus(false)
                 crimeViewModel.signOut()
             },
                 onNoButtonPressed = {
