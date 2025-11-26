@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">CrimeWatch</string>
+    <string name="default_web_client_id">382628024014-m4qe5pjnr2df1lbkta2kvbkm3hpiah8n.apps.googleusercontent.com</string>
+
 </resources>

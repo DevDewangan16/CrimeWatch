@@ -1,5 +1,8 @@
 package com.example.crimewatch.ui
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,13 +20,17 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -32,12 +39,47 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.crimewatch.R
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
 
 @Composable
 fun SignInScreen(
     crimeViewModel: CrimeViewModel,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    webClientId: String
 ) {
+    val context = LocalContext.current
+    val authState by crimeViewModel.authState.collectAsState()
+    val googleClient = getGoogleSignInClient(context, webClientId)
+
+    // launcher for Google Sign In Activity
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { activityResult ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(activityResult.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val idToken = account?.idToken
+            if (idToken != null) {
+                // send ID token to ViewModel to sign in with Firebase
+                crimeViewModel.firebaseAuthWithGoogle(idToken) { success, error ->
+                    if (success) {
+                        // navigate to home on successful sign in
+                        navHostController.navigate(CrimeAppScreen.Home.name) {
+                            popUpTo(CrimeAppScreen.SignIn.name) { inclusive = true }
+                        }
+                    } else {
+                        // Optionally show error (authState will also hold it)
+                    }
+                }
+            } else {
+                // handle missing idToken
+            }
+        } catch (e: ApiException) {
+            // handle error (e.statusCode)
+        }
+    }
+
 
     Box(
         modifier = Modifier
@@ -102,7 +144,10 @@ fun SignInScreen(
 
                 // Google Sign In Button
                 OutlinedButton(
-                    onClick = { /* TODO */ },
+                    onClick = {
+                        val signInIntent: Intent = googleClient.signInIntent
+                        launcher.launch(signInIntent)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp)
@@ -121,6 +166,16 @@ fun SignInScreen(
                         color = Color.Black,
                         modifier = Modifier.padding(start = 8.dp)
                     )
+                }
+                if (authState.isLoading) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                // Show error if needed
+                authState.error?.let { err ->
+                    // very simple inline error UI:
+                    Text(text = err, color = Color.Red)
                 }
 
                 Column(

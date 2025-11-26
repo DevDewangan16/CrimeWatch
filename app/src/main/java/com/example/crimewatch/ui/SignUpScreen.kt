@@ -1,5 +1,10 @@
+// SignUpScreen.kt
 package com.example.crimewatch.ui
 
+import android.content.Intent
+import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,26 +20,74 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.crimewatch.R
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
 
 @Composable
 fun SignUpScreen(
     crimeViewModel: CrimeViewModel,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    webClientId: String // pass from stringResource(R.string.default_web_client_id)
 ) {
+    val context = LocalContext.current
+    val authState by crimeViewModel.authState.collectAsState()
+
+    // Use the helper from GoogleSignInUtils.kt
+    val googleClient = remember { getGoogleSignInClient(context, webClientId) }
+
+    // Launcher for the Google Sign-In activity result
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { activityResult ->
+        val data: Intent? = activityResult.data
+        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val idToken = account?.idToken
+            if (idToken != null) {
+                crimeViewModel.firebaseAuthWithGoogle(idToken) { success, _ ->
+                    if (success) {
+                        navHostController.navigate(CrimeAppScreen.Home.name) {
+                            popUpTo(CrimeAppScreen.SignUp.name) { inclusive = true }
+                        }
+                    }
+                }
+            } else {
+                // handle missing token if desired
+            }
+        } catch (e: ApiException) {
+            // handle error (log or set viewModel error)
+        }
+    }
+
+    LaunchedEffect(authState.uid) {
+        if (!authState.uid.isNullOrEmpty()) {
+            navHostController.navigate(CrimeAppScreen.Home.name) {
+                popUpTo(CrimeAppScreen.SignUp.name) { inclusive = true }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -80,7 +133,6 @@ fun SignUpScreen(
                     contentScale = ContentScale.Fit
                 )
 
-                // Title
                 Text(
                     text = "Create Account",
                     fontSize = 30.sp,
@@ -89,8 +141,6 @@ fun SignUpScreen(
                     textAlign = TextAlign.Center
                 )
 
-
-                // Subtitle
                 Text(
                     text = "Join CrimeWatch and stay informed.",
                     fontSize = 16.sp,
@@ -98,9 +148,12 @@ fun SignUpScreen(
                     textAlign = TextAlign.Center
                 )
 
-                // Google Sign Up Button
                 OutlinedButton(
-                    onClick = { /* TODO: Google Signup */ },
+                    onClick = {
+                        // Launch the intent from the GoogleSignInClient instance
+                        val signInIntent = googleClient.signInIntent
+                        launcher.launch(signInIntent)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(55.dp),
@@ -120,7 +173,19 @@ fun SignUpScreen(
                     )
                 }
 
-                // Already have account?
+                if (authState.isLoading) {
+                    CircularProgressIndicator()
+                }
+
+                authState.error?.let { err ->
+                    Text(
+                        text = err,
+                        fontSize = 14.sp,
+                        color = Color.Red,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
