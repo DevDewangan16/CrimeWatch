@@ -3,11 +3,13 @@ package com.example.crimewatch.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,61 +33,121 @@ import androidx.compose.ui.unit.sp
 import com.example.crimewatch.R
 
 @Composable
-fun SignInScreen(){
-    Column(
-        modifier = Modifier.background(color = Color(0xffE53131))
+fun SignInScreen() {
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xffE53131))
     ) {
-        Card (
-            modifier = Modifier.padding(25.dp,120.dp,25.dp,0.dp),
-            shape = RoundedCornerShape(15.dp,15.dp,0.dp,0.dp),
-            colors = CardDefaults.cardColors(
-                Color.White
-            )
+
+        // Curved top decorative background
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .size(350.dp)
+                .background(
+                    color = Color(0xffBF1F1F),
+                    shape = RoundedCornerShape(bottomStart = 90.dp, bottomEnd = 90.dp)
+                )
+        )
+
+        // Main Card Content
+        Card(
+            modifier = Modifier
+                .padding(horizontal = 28.dp)
+                .padding(top = 180.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
+
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(10.dp),
+                    .padding(22.dp)
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
+
+                // Logo
                 Image(
                     painter = painterResource(id = R.drawable.logo),
-                    contentDescription ="Logo",
-                    modifier = Modifier.size(282.dp),
-                    contentScale = ContentScale.Fit,
+                    contentDescription = "Logo",
+                    modifier = Modifier.size(180.dp),
+                    contentScale = ContentScale.Fit
                 )
+
+                // Title
                 Text(
                     text = "Welcome to CrimeWatch",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Join the community and make your surroundings safer.",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 20.sp,
-                )
-                OutlinedButton(onClick = { /*TODO*/ } ,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    shape = RoundedCornerShape(5.dp),
-                    border = BorderStroke(2.dp,Color(0xffE53131))
-                ) {
-                    Text(
-                        text = "Continue with Google",
-                        fontSize = 20.sp,
-                        color = Color.Black
-                    )
-                }
-                Text(
-                    text = "By continuing, you agree to CrimeWatch’s Terms & Privacy Policy.",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 18.sp,
-                    color = Color(0xff7C7272),
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xffE53131),
                     textAlign = TextAlign.Center
                 )
+
+                // Subtitle
+                Text(
+                    text = "Stay informed.\nKeep your community safe.",
+                    fontSize = 18.sp,
+                    color = Color(0xFF4A4A4A),
+                    textAlign = TextAlign.Center
+                )
+
+                // Google Sign In Button
+                OutlinedButton(
+                    onClick = { /* TODO */ },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .height(55.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.5.dp, Color(0xffE53131))
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.google_icon),
+                        contentDescription = "Google Icon",
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Text(
+                        text = "Continue with Google",
+                        fontSize = 18.sp,
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+
+                // Policy
+                Text(
+                    text = "By continuing, you agree to the\nTerms & Privacy Policy.",
+                    textAlign = TextAlign.Center,
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Don't have an account?",
+                        fontSize = 16.sp,
+                        color = Color(0xFF6C6C6C)
+                    )
+
+                    Text(
+                        text = "Sign Up",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xffE53131),
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .clickable {
+                                onSignUpClick() // navigate to signup screen
+                            }
+                    )
             }
         }
     }
