@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
@@ -25,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,7 +31,7 @@ import androidx.navigation.NavHostController
 import com.example.crimewatch.R
 
 @Composable
-fun SignInScreen(
+fun SignUpScreen(
     crimeViewModel: CrimeViewModel,
     navHostController: NavHostController
 ) {
@@ -45,22 +42,22 @@ fun SignInScreen(
             .background(Color(0xffE53131))
     ) {
 
-        // Curved top decorative background
+        // Header Background
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .size(350.dp)
+                .size(320.dp)
                 .background(
                     color = Color(0xffBF1F1F),
                     shape = RoundedCornerShape(bottomStart = 90.dp, bottomEnd = 90.dp)
                 )
         )
 
-        // Main Card Content
+        // Main Card
         Card(
             modifier = Modifier
                 .padding(horizontal = 28.dp)
-                .padding(top = 180.dp)
+                .padding(top = 150.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
@@ -72,7 +69,7 @@ fun SignInScreen(
                     .padding(22.dp)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
 
                 // Logo
@@ -85,27 +82,27 @@ fun SignInScreen(
 
                 // Title
                 Text(
-                    text = "Welcome to CrimeWatch",
+                    text = "Create Account",
                     fontSize = 30.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xffE53131),
                     textAlign = TextAlign.Center
                 )
 
+
                 // Subtitle
                 Text(
-                    text = "Stay informed.\nKeep your community safe.",
-                    fontSize = 18.sp,
+                    text = "Join CrimeWatch and stay informed.",
+                    fontSize = 16.sp,
                     color = Color(0xFF4A4A4A),
                     textAlign = TextAlign.Center
                 )
 
-                // Google Sign In Button
+                // Google Sign Up Button
                 OutlinedButton(
-                    onClick = { /* TODO */ },
+                    onClick = { /* TODO: Google Signup */ },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
                         .height(55.dp),
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(1.5.dp, Color(0xffE53131))
@@ -123,37 +120,30 @@ fun SignInScreen(
                     )
                 }
 
-                // Policy
-                Text(
-                    text = "By continuing, you agree to the\nTerms & Privacy Policy.",
-                    textAlign = TextAlign.Center,
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-
+                // Already have account?
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Don't have an account?",
+                        text = "Already have an account?",
                         fontSize = 16.sp,
                         color = Color(0xFF6C6C6C)
                     )
 
                     Text(
-                        text = "Sign Up",
+                        text = "Sign In",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xffE53131),
                         modifier = Modifier
                             .padding(top = 4.dp)
                             .clickable {
-                                navHostController.navigate(CrimeAppScreen.SignUp.name)
+                                navHostController.navigate(CrimeAppScreen.SignIn.name)
                             }
                     )
+                }
             }
         }
     }
-}
 }
