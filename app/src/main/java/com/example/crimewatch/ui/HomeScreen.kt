@@ -14,18 +14,5 @@ fun HomeScreen(
     crimeViewModel: CrimeViewModel,
     navHostController: NavHostController
 ){
-    Column (
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween
-    ){
-        Text(text = "Welcome to the HomeScreen")
-        Button(onClick = {
-            crimeViewModel.signOut()
-        }) {
-            Text(text = "SignOut")
-        }
-        
-    }
-    
-    
+
 }

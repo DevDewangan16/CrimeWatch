@@ -29,6 +29,9 @@ class CrimeViewModel(application: Application):AndroidViewModel(application){
     private val _authState = MutableStateFlow(AuthState())
     val authState: StateFlow<AuthState> = _authState
 
+    private val _logoutClicked=MutableStateFlow(false)
+    val logoutClicked:MutableStateFlow<Boolean>get() = _logoutClicked
+
     init {
         // initialize from FirebaseAuth current user (may be null)
         _user.value = auth.currentUser
@@ -37,6 +40,12 @@ class CrimeViewModel(application: Application):AndroidViewModel(application){
     // helper to update user (call this after sign-in / sign-out)
     fun setUser(user: FirebaseUser?) {
         _user.value = user
+    }
+
+    fun setLogoutStatus(
+        logoutStatus:Boolean
+    ){
+        _logoutClicked.value=logoutStatus
     }
 
 
