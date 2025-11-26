@@ -123,14 +123,6 @@ fun SignInScreen(
                     )
                 }
 
-                // Policy
-                Text(
-                    text = "By continuing, you agree to the\nTerms & Privacy Policy.",
-                    textAlign = TextAlign.Center,
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()

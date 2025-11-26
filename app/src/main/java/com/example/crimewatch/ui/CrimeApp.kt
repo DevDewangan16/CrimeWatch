@@ -9,7 +9,8 @@ import androidx.navigation.compose.rememberNavController
 
 enum class CrimeAppScreen(){
     SignIn,
-    SignUp
+    SignUp,
+    Home
 }
 
 @Composable
@@ -23,6 +24,9 @@ fun CrimeApp(
         }
         composable(route = CrimeAppScreen.SignUp.name){
             SignUpScreen(crimeViewModel = crimeViewModel, navHostController = navHostController)
+        }
+        composable(route=CrimeAppScreen.Home.name){
+            HomeScreen(crimeViewModel = crimeViewModel, navHostController = navHostController)
         }
     }
 }

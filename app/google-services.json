@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "382628024014",
+    "project_id": "crimewatch-7c407",
+    "storage_bucket": "crimewatch-7c407.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:382628024014:android:9b9dc4950a052c84140a9f",
+        "android_client_info": {
+          "package_name": "com.example.crimewatch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "382628024014-lg76l0jggm8if8bcbhgrb2p5663rjctk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.crimewatch",
+            "certificate_hash": "9a2b2caf9ecc534e34626c5934d3c177e114c90a"
+          }
+        },
+        {
+          "client_id": "382628024014-m4qe5pjnr2df1lbkta2kvbkm3hpiah8n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSxX4KzT0LqIAIBro2DwsAvE4tN_ZaMDs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "382628024014-m4qe5pjnr2df1lbkta2kvbkm3hpiah8n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
