@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,47 +20,42 @@ class CrimeViewModel(application: Application):AndroidViewModel(application){
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
+    // internal mutable flow holding the FirebaseUser (or null)
+    private val _user = MutableStateFlow<FirebaseUser?>(null)
+
+    // expose as read-only StateFlow
+    val user: StateFlow<FirebaseUser?> = _user
+
     private val _authState = MutableStateFlow(AuthState())
     val authState: StateFlow<AuthState> = _authState
 
     init {
-        // If user already signed in, update state
-        auth.currentUser?.let { user ->
-            _authState.value = AuthState(
-                isLoading = false,
-                userDisplayName = user.displayName,
-                uid = user.uid,
-                error = null
-            )
-        }
+        // initialize from FirebaseAuth current user (may be null)
+        _user.value = auth.currentUser
     }
 
+    // helper to update user (call this after sign-in / sign-out)
+    fun setUser(user: FirebaseUser?) {
+        _user.value = user
+    }
+
+
     fun firebaseAuthWithGoogle(idToken: String, onResult: (Boolean, String?) -> Unit) {
-        _authState.value = _authState.value.copy(isLoading = true, error = null)
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener { task ->
-                viewModelScope.launch {
-                    if (task.isSuccessful) {
-                        val user = auth.currentUser
-                        _authState.value = AuthState(
-                            isLoading = false,
-                            userDisplayName = user?.displayName,
-                            uid = user?.uid,
-                            error = null
-                        )
-                        onResult(true, null)
-                    } else {
-                        val err = task.exception?.localizedMessage ?: "Authentication failed"
-                        _authState.value = AuthState(isLoading = false, error = err)
-                        onResult(false, err)
-                    }
-                }
+        _user.value = null // optional: show loading via separate flow if you have one
+        auth.signInWithCredential(credential).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                // update the user flow with the current user
+                _user.value = auth.currentUser
+                onResult(true, null)
+            } else {
+                onResult(false, task.exception?.localizedMessage)
             }
+        }
     }
 
     fun signOut() {
         auth.signOut()
-        _authState.value = AuthState()
+        _user.value = null
     }
 }

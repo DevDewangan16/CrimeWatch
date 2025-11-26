@@ -1,5 +1,6 @@
 package com.example.crimewatch.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
@@ -14,8 +15,17 @@ fun HomeScreen(
     navHostController: NavHostController
 ){
     Column (
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween
     ){
         Text(text = "Welcome to the HomeScreen")
+        Button(onClick = {
+            crimeViewModel.signOut()
+        }) {
+            Text(text = "SignOut")
+        }
+        
     }
+    
+    
 }
