@@ -1,33 +1,24 @@
-// CrimeApp.kt
+// CrimeApp.kt - App Bars Section
 package com.example.crimewatch.ui
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.List
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -67,18 +58,13 @@ fun CrimeApp(
 ) {
     val webClientId = stringResource(id = R.string.default_web_client_id)
 
-    // Observe FirebaseUser state from ViewModel
     val user by crimeViewModel.user.collectAsState()
-
     val logoutClicked by crimeViewModel.logoutClicked.collectAsState()
 
-
-    // Set initial user from FirebaseAuth once when this composable enters composition.
     LaunchedEffect(Unit) {
-        crimeViewModel.setUser(auth.currentUser) // safe one-time init
+        crimeViewModel.setUser(auth.currentUser)
     }
 
-    // get current backstack entry
     val backStackEntry by navHostController.currentBackStackEntryAsState()
     val rawRoute = backStackEntry?.destination?.route ?: CrimeAppScreen.Home.name
     val baseRoute = rawRoute.substringBefore("/")
@@ -92,56 +78,76 @@ fun CrimeApp(
         CrimeAppScreen.Home
     }
 
-
     canNavigateBack=navHostController.previousBackStackEntry != null
 
-
-    // Use a single NavHost. Choose startDestination based on current user.
     val startDestination = if (user == null) CrimeAppScreen.SignIn.name else CrimeAppScreen.Home.name
 
     Scaffold(
-        topBar ={
-            if (user !=null){
-                TopAppBar(title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+        topBar = {
+            if (user != null) {
+                TopAppBar(
+                    title = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // App Title
                             Text(
                                 text = currentScreen.title,
-                                fontSize = 26.sp,
+                                fontSize = 22.sp,
                                 fontFamily = FontFamily.SansSerif,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.Black
-                                )
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1A1A1A)
+                            )
+
+                            // Logout Button
+                            Surface(
+                                modifier = Modifier.clickable {
+                                    crimeViewModel.setLogoutStatus(true)
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                                color = Color(0xFFFFF3E0)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ExitToApp,
+                                        contentDescription = "Logout",
+                                        modifier = Modifier.size(18.dp),
+                                        tint = Color(0xFFE65100)
+                                    )
+                                    Text(
+                                        text = "Logout",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFFE65100)
+                                    )
+                                }
+                            }
                         }
-                        Row(modifier = Modifier.clickable {
-                            crimeViewModel.setLogoutStatus(true)
-                        }) {
-                            Icon(painter = painterResource(id = R.drawable.logout), contentDescription ="Logout",
-                                modifier = Modifier.size(24.dp))
-                            Text(text = "Logout",
-                                fontSize = 18.sp,
-                                modifier = Modifier.padding(
-                                    end = 14.dp,
-                                    start = 4.dp
-                                ))
-                        }
-                    }
-                })
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.White
+                    )
+                )
             }
         },
         bottomBar = {
-            if (user != null){
-                BottomAppBar(navHostController = navHostController, currentScreen = currentScreen)
+            if (user != null) {
+                BottomAppBar(
+                    navHostController = navHostController,
+                    currentScreen = currentScreen
+                )
             }
-        }
+        },
+        containerColor = Color(0xFFF5F5F5)
     ) {
         NavHost(navController = navHostController, startDestination = startDestination) {
             composable(CrimeAppScreen.SignIn.name) {
-                // Pass webClientId and viewModel into SignInScreen
                 SignInScreen(
                     crimeViewModel = crimeViewModel,
                     navHostController = navHostController,
@@ -182,21 +188,20 @@ fun CrimeApp(
             composable(route = CrimeAppScreen.MyReport.name) {
                 MyReportScreen(crimeViewModel = crimeViewModel, navHostController = navHostController)
             }
-
         }
 
-        if (logoutClicked){
-            AlertCheck(onYesButtonPressed = {
-                crimeViewModel.setLogoutStatus(false)
-                crimeViewModel.signOut()
-            },
+        if (logoutClicked) {
+            AlertCheck(
+                onYesButtonPressed = {
+                    crimeViewModel.setLogoutStatus(false)
+                    crimeViewModel.signOut()
+                },
                 onNoButtonPressed = {
                     crimeViewModel.setLogoutStatus(false)
                 }
             )
         }
 
-        // If user becomes non-null (e.g., after successful sign-in), navigate to Home and clear sign-in/up from backstack.
         LaunchedEffect(user) {
             if (user != null) {
                 navHostController.navigate(CrimeAppScreen.Home.name) {
@@ -210,79 +215,165 @@ fun CrimeApp(
 @Composable
 fun BottomAppBar(
     navHostController: NavHostController,
-    currentScreen:CrimeAppScreen
-){
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 70.dp, vertical = 10.dp)    ) {
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-            ,    modifier = Modifier.clickable {
-                navHostController.navigate(CrimeAppScreen.Home.name){
-                    popUpTo(0)
+    currentScreen: CrimeAppScreen
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color.White,
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp)
+        ) {
+            // Home
+            BottomNavItem(
+                icon = Icons.Outlined.Home,
+                label = "Home",
+                isSelected = currentScreen == CrimeAppScreen.Home,
+                onClick = {
+                    navHostController.navigate(CrimeAppScreen.Home.name) {
+                        popUpTo(0)
+                    }
                 }
-            }) {
-            Icon(imageVector = Icons.Outlined.Home, contentDescription ="Home" )
-            Text(text = "Home", fontSize = 10.sp)
-        }
+            )
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-            ,    modifier = Modifier.clickable {
-                navHostController.navigate(CrimeAppScreen.Report.name){
-                    popUpTo(0)
+            // Report (Center - Emphasized)
+            Surface(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clickable {
+                        navHostController.navigate(CrimeAppScreen.Report.name) {
+                            popUpTo(0)
+                        }
+                    },
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFF2196F3),
+                shadowElevation = 4.dp
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = "Report",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
                 }
-            }) {
-            Icon(imageVector = Icons.Outlined.Add, contentDescription ="Add" )
-            Text(text = "Report", fontSize = 10.sp)
-        }
+            }
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-            ,    modifier = Modifier.clickable {
-                navHostController.navigate(CrimeAppScreen.MyReport.name){
-                    popUpTo(0)
+            // My Reports
+            BottomNavItem(
+                icon = Icons.Outlined.List,
+                label = "My Reports",
+                isSelected = currentScreen == CrimeAppScreen.MyReport,
+                onClick = {
+                    navHostController.navigate(CrimeAppScreen.MyReport.name) {
+                        popUpTo(0)
+                    }
                 }
-            }) {
-            Icon(imageVector = Icons.Outlined.List, contentDescription ="My Report" )
-            Text(text = "My Report", fontSize = 10.sp)
+            )
         }
     }
 }
 
 @Composable
-fun AlertCheck(
-    onYesButtonPressed:()->Unit,
-    onNoButtonPressed:()->Unit
+fun BottomNavItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = if (isSelected) Color(0xFF2196F3) else Color(0xFF999999),
+            modifier = Modifier.size(24.dp)
+        )
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (isSelected) Color(0xFF2196F3) else Color(0xFF999999)
+        )
+    }
+}
 
-){
+@Composable
+fun AlertCheck(
+    onYesButtonPressed: () -> Unit,
+    onNoButtonPressed: () -> Unit
+) {
     AlertDialog(
+        onDismissRequest = { onNoButtonPressed() },
         title = {
-            Text(text = "Logout?", fontWeight = FontWeight.Bold)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ExitToApp,
+                    contentDescription = null,
+                    tint = Color(0xFFFF9800),
+                    modifier = Modifier.size(28.dp)
+                )
+                Text(
+                    text = "Logout",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color(0xFF1A1A1A)
+                )
+            }
         },
-        containerColor = Color.White,
         text = {
-            Text(text = "Are you sure you want to Logout")
+            Text(
+                text = "Are you sure you want to logout from your account?",
+                fontSize = 16.sp,
+                color = Color(0xFF666666),
+                lineHeight = 22.sp
+            )
         },
         confirmButton = {
-            TextButton(onClick = {
-                onYesButtonPressed()
-            }) {
-                Text(text = "Yes")
+            Button(
+                onClick = { onYesButtonPressed() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFE53935)
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "Yes, Logout",
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         },
         dismissButton = {
-            TextButton(onClick = {
-                onNoButtonPressed()
-            }) {
-                Text(text = "No")
+            TextButton(
+                onClick = { onNoButtonPressed() },
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = Color(0xFF666666)
+                )
+            ) {
+                Text(
+                    text = "Cancel",
+                    fontWeight = FontWeight.Medium
+                )
             }
         },
-        onDismissRequest = {
-            onNoButtonPressed()
-        }
+        containerColor = Color.White,
+        shape = RoundedCornerShape(16.dp)
     )
 }
