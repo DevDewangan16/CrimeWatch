@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -39,14 +42,14 @@ fun ReportScreen(
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showFailureDialog by remember { mutableStateOf(false) }
 
-    // Media picker: upload only (no auto-submit)
+    // Media picker
     val mediaPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
             crimeViewModel.uploadMediaOnly(it)
         }
     }
 
-    // React to submitResult changes (trigger dialogs)
+    // React to submitResult changes
     LaunchedEffect(submitResult) {
         when (submitResult) {
             null -> { /* nothing */ }
@@ -55,102 +58,378 @@ fun ReportScreen(
         }
     }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        containerColor = Color(0xFFF5F5F5)
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
                 .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
         ) {
-            Text(text = "Report an Incident", fontSize = 26.sp)
-            Text(text = "Help your community by reporting what you see.", fontSize = 16.sp)
+            // Header Section
+            Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                Text(
+                    text = "Report an Incident",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1A1A)
+                )
+                Text(
+                    text = "Help your community by reporting what you see",
+                    fontSize = 15.sp,
+                    color = Color(0xFF666666),
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(text = "Select Categories", fontSize = 18.sp)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White)
-                    .clickable { showCategoryDialog = true },
-                contentAlignment = Alignment.CenterStart
+            // Category Selection Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Text(text = selectedCategory ?: "Choose category", modifier = Modifier.padding(16.dp))
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.List,
+                            contentDescription = null,
+                            tint = Color(0xFF2196F3),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Category",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1A1A1A)
+                        )
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showCategoryDialog = true },
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFF5F5F5),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = selectedCategory ?: "Choose category",
+                                fontSize = 15.sp,
+                                color = if (selectedCategory == null) Color(0xFF999999) else Color(0xFF1A1A1A)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = Color(0xFF999999)
+                            )
+                        }
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text(text = "Add Description", fontSize = 18.sp)
-            OutlinedTextField(
-                value = description,
-                onValueChange = { crimeViewModel.description.value = it },
-                placeholder = { Text("Describe what happened...") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(text = "Location", fontSize = 18.sp)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White),
-                contentAlignment = Alignment.CenterStart
+            // Description Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Text(text = locationText, modifier = Modifier.padding(16.dp))
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = Color(0xFF2196F3),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Description",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1A1A1A)
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { crimeViewModel.description.value = it },
+                        placeholder = {
+                            Text(
+                                "Describe what happened in detail...",
+                                color = Color(0xFF999999)
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF2196F3),
+                            unfocusedBorderColor = Color(0xFFE0E0E0),
+                            focusedContainerColor = Color(0xFFFAFAFA),
+                            unfocusedContainerColor = Color(0xFFFAFAFA)
+                        ),
+                        maxLines = 6
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = { crimeViewModel.locationText.value = "Detected: Near Central Park" },
-                modifier = Modifier.fillMaxWidth().height(56.dp)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Location Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Text("Choose your Location")
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = null,
+                            tint = Color(0xFF2196F3),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Location",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1A1A1A)
+                        )
+                    }
+
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFF5F5F5),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Place,
+                                contentDescription = null,
+                                tint = Color(0xFF4CAF50),
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = locationText,
+                                fontSize = 15.sp,
+                                color = if (locationText == "Location not set") Color(0xFF999999) else Color(0xFF1A1A1A),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        onClick = { crimeViewModel.locationText.value = "Detected: Near Central Park" },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF4CAF50)
+                        ),
+                        contentPadding = PaddingValues(vertical = 14.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Detect My Location",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text(text = "Upload Media", fontSize = 18.sp)
-            Button(
-                onClick = { mediaPicker.launch("*/*") },
-                modifier = Modifier.fillMaxWidth().height(56.dp)
+            // Media Upload Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Text("\uD83D\uDCF7 Add Photo or \uD83C\uDFA5 Add Video")
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = Color(0xFF2196F3),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Media (Optional)",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1A1A1A)
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = { mediaPicker.launch("*/*") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF2196F3)
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.5.dp,
+                            Color(0xFF2196F3)
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.List,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Add Photo or Video",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Upload status
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                        color = when {
+                            isUploading -> Color(0xFFFFF3E0)
+                            pickedMediaUrl != null -> Color(0xFFE8F5E9)
+                            else -> Color(0xFFF5F5F5)
+                        }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = when {
+                                    isUploading -> Icons.Default.Add
+                                    pickedMediaUrl != null -> Icons.Default.CheckCircle
+                                    else -> Icons.Default.Info
+                                },
+                                contentDescription = null,
+                                tint = when {
+                                    isUploading -> Color(0xFFFF9800)
+                                    pickedMediaUrl != null -> Color(0xFF4CAF50)
+                                    else -> Color(0xFF999999)
+                                },
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = when {
+                                    isUploading -> "Uploading media..."
+                                    pickedMediaUrl != null -> "Media uploaded: ${pickedMediaUrl!!.substringAfterLast('/')}"
+                                    else -> "No media selected"
+                                },
+                                fontSize = 13.sp,
+                                color = when {
+                                    isUploading -> Color(0xFFE65100)
+                                    pickedMediaUrl != null -> Color(0xFF2E7D32)
+                                    else -> Color(0xFF666666)
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Upload status / selected file name
-            when {
-                isUploading -> Text("Uploading media…", color = Color.Gray, fontSize = 14.sp)
-                pickedMediaUrl != null -> Text("Selected: ${pickedMediaUrl!!.substringAfterLast('/')}", color = Color.Gray, fontSize = 14.sp)
-                else -> Text("No media selected", color = Color.Gray, fontSize = 14.sp)
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // Submit button: disabled during upload or submit
+            // Submit Button
             Button(
                 onClick = { crimeViewModel.submitReport() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.dp),
-                enabled = !isUploading && !isSubmitting,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53131))
+                    .height(56.dp),
+                enabled = !isUploading && !isSubmitting && selectedCategory != null && description.isNotBlank(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF2196F3),
+                    disabledContainerColor = Color(0xFFBDBDBD)
+                ),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 4.dp,
+                    pressedElevation = 8.dp,
+                    disabledElevation = 0.dp
+                )
             ) {
                 when {
-                    isUploading -> CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
-                    isSubmitting -> CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
-                    else -> Text("Submit Report", fontSize = 20.sp, color = Color.White)
+                    isUploading || isSubmitting -> {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            if (isUploading) "Uploading..." else "Submitting...",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    else -> {
+                        Icon(
+                            imageVector = Icons.Default.Send,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Submit Report",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
@@ -161,7 +440,14 @@ fun ReportScreen(
     // Category dialog
     if (showCategoryDialog) {
         CategorySelectionDialog(
-            categories = listOf("Municipal Complaints", "Theft", "Accident", "Harassment", "Vandalism", "Other"),
+            categories = listOf(
+                "Municipal Complaints",
+                "Theft",
+                "Accident",
+                "Harassment",
+                "Vandalism",
+                "Other"
+            ),
             onSelect = {
                 crimeViewModel.selectedCategory.value = it
                 showCategoryDialog = false
@@ -170,24 +456,19 @@ fun ReportScreen(
         )
     }
 
-    // Success dialog (pressing OK resets submitResult and navigates home)
+    // Success dialog
     if (showSuccessDialog) {
         FullScreenMessageDialog(
-            titleEmoji = "\u2705",
+            titleEmoji = "✅",
             title = "Report Submitted",
-            message = "Your report has been sent for verification.\nYou’ll be notified once reviewed.",
+            message = "Your report has been sent for verification.\nYou'll be notified once reviewed.",
             positiveLabel = "OK",
             onPositive = {
                 showSuccessDialog = false
-                // clear form
                 crimeViewModel.selectedCategory.value = null
                 crimeViewModel.description.value = ""
                 crimeViewModel.pickedMediaUrl.value = null
-
-                // reset submit result so dialog does not reappear
                 crimeViewModel.resetSubmitResult()
-
-                // navigate home and clear backstack of Report (if applicable)
                 navHostController.navigate(CrimeAppScreen.Home.name) {
                     popUpTo(CrimeAppScreen.Report.name) { inclusive = true }
                 }
@@ -198,13 +479,12 @@ fun ReportScreen(
     // Failure dialog
     if (showFailureDialog) {
         FullScreenMessageDialog(
-            titleEmoji = "\u26A0",
+            titleEmoji = "⚠️",
             title = "Submission Failed",
             message = submitResult ?: "Please check your internet connection.",
             positiveLabel = "RETRY",
             onPositive = {
                 showFailureDialog = false
-                // clear error so dialog won't re-open
                 crimeViewModel.resetSubmitResult()
             }
         )
@@ -220,30 +500,58 @@ fun CategorySelectionDialog(
 ) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
-        title = { Text("Categories", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.List,
+                    contentDescription = null,
+                    tint = Color(0xFF2196F3),
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Select Category",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            }
+        },
         text = {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 categories.forEach { cat ->
-                    Column(
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onSelect(cat) }
-                            .padding(vertical = 10.dp)
+                            .clickable { onSelect(cat) },
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color.Transparent
                     ) {
-                        Text(text = cat, fontSize = 22.sp, modifier = Modifier.padding(8.dp))
-                        Divider()
+                        Text(
+                            text = cat,
+                            fontSize = 16.sp,
+                            color = Color(0xFF1A1A1A),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp, horizontal = 8.dp)
+                        )
+                    }
+                    if (cat != categories.last()) {
+                        Divider(color = Color(0xFFEEEEEE))
                     }
                 }
             }
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Close") }
-        }
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = Color(0xFF666666))
+            }
+        },
+        shape = RoundedCornerShape(16.dp)
     )
 }
 
-/** Full screen message dialog (success / failure) */
+/** Full screen message dialog */
 @Composable
 fun FullScreenMessageDialog(
     titleEmoji: String,
@@ -255,18 +563,52 @@ fun FullScreenMessageDialog(
     AlertDialog(
         onDismissRequest = { /* block */ },
         title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = titleEmoji, fontSize = 36.sp)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = title, fontSize = 28.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = titleEmoji,
+                    fontSize = 48.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = title,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1A1A)
+                )
             }
         },
-        text = { Text(text = message, fontSize = 20.sp) },
+        text = {
+            Text(
+                text = message,
+                fontSize = 16.sp,
+                color = Color(0xFF666666),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        },
         confirmButton = {
-            TextButton(onClick = onPositive) {
-                Text(text = positiveLabel, fontSize = 20.sp, color = Color(0xFFE53131), fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            Button(
+                onClick = onPositive,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF2196F3)
+                ),
+                contentPadding = PaddingValues(vertical = 14.dp)
+            ) {
+                Text(
+                    text = positiveLabel,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         },
-        containerColor = Color.White
+        containerColor = Color.White,
+        shape = RoundedCornerShape(20.dp)
     )
 }
