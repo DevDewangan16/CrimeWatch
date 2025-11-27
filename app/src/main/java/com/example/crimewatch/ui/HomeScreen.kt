@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Check
@@ -27,6 +28,10 @@ import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import java.time.*
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Composable
 fun HomeScreen(
@@ -36,34 +41,79 @@ fun HomeScreen(
     val reports by reportsViewModel.reports.collectAsState()
     val isLoading by reportsViewModel.isLoading.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-            .padding(16.dp)
-    ) {
-        // Header
-        Text(
-            text = "Recent Incidents",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF1A1A1A)
-        )
-        Text(
-            text = "Stay informed about incidents near you",
-            fontSize = 14.sp,
-            color = Color(0xFF666666),
-            modifier = Modifier.padding(top = 4.dp)
-        )
+    // Auto-refresh when screen composes
+    LaunchedEffect(Unit) {
+        // small delay to ensure things are set up; remove if not needed
+        reportsViewModel.refreshReports()
+    }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxSize()
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF5F5F5))
+                .padding(16.dp)
         ) {
-            items(reports) { report ->
-                ReportCard(report = report, navHostController = navHostController)
+            // Header with title + refresh button + inline loader
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Recent Incidents",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1A1A)
+                    )
+                    Text(
+                        text = "Stay informed about incidents near you",
+                        fontSize = 14.sp,
+                        color = Color(0xFF666666),
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (isLoading) {
+                        // small inline loader
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Spacer(modifier = Modifier.width(12.dp))
+                    }
+                    IconButton(onClick = { reportsViewModel.refreshReports() }) {
+                        Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // List of reports
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(reports) { report ->
+                    ReportCard(report = report, navHostController = navHostController)
+                }
+            }
+        }
+
+        // Full-screen overlay loader while initial loading (optional)
+        if (isLoading) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize(),
+                color = Color.Black.copy(alpha = 0.15f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Refreshing...")
+                    }
+                }
             }
         }
     }
@@ -231,7 +281,7 @@ fun ReportCard(
                         )
                     }
 
-                    // Date
+                    // Date (human friendly)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -243,7 +293,7 @@ fun ReportCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = report.created_at?.substringBefore("T") ?: "N/A",
+                            text = formatTimeAgo(report.created_at),
                             fontSize = 13.sp,
                             color = Color(0xFF757575)
                         )
@@ -273,3 +323,10 @@ fun ReportCard(
         }
     }
 }
+
+/**
+ * Format ISO-8601 timestamp string to human friendly text.
+ * Examples: "Just now", "5 min ago", "2 hrs ago", "Yesterday", "23 Jan 2025 • 04:32 PM"
+ *
+ * Expects timestamps like: "2025-01-23T12:34:56.789Z" (UTC) or other ISO-8601 strings.
+ */

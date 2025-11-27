@@ -47,7 +47,7 @@ fun MyReportScreen(
             }
             return@Box
         }
-
+        
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -56,7 +56,6 @@ fun MyReportScreen(
         ) {
 
             items(myReports, key = { it.id }) { report ->
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()

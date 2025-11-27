@@ -70,12 +70,7 @@ fun ReportScreen(
         ) {
             // Header Section
             Column(modifier = Modifier.padding(bottom = 24.dp)) {
-                Text(
-                    text = "Report an Incident",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1A1A)
-                )
+                Spacer(modifier = Modifier.fillMaxWidth().height(45.dp))
                 Text(
                     text = "Help your community by reporting what you see",
                     fontSize = 15.sp,
