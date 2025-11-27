@@ -146,7 +146,10 @@ fun SignInScreen(
                 OutlinedButton(
                     onClick = {
                         val signInIntent: Intent = googleClient.signInIntent
-                        launcher.launch(signInIntent)
+                        googleClient.signOut().addOnCompleteListener {
+                            // now launch chooser
+                            launcher.launch(signInIntent)
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()

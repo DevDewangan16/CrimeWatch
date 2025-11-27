@@ -152,7 +152,9 @@ fun SignUpScreen(
                     onClick = {
                         // Launch the intent from the GoogleSignInClient instance
                         val signInIntent = googleClient.signInIntent
-                        launcher.launch(signInIntent)
+                        googleClient.signOut().addOnCompleteListener {
+                            launcher.launch(signInIntent)
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
