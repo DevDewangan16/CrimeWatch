@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.crimewatch.data.supabase.ReportDto
 
@@ -23,8 +25,7 @@ fun MyReportScreen(
     crimeViewModel: CrimeViewModel,
     navHostController: NavHostController
 ) {
-    // load user's reports when this screen enters composition
-    LaunchedEffect(key1 = crimeViewModel.user) {
+    LaunchedEffect(crimeViewModel.user) {
         crimeViewModel.loadMyReports()
     }
 
@@ -32,6 +33,7 @@ fun MyReportScreen(
     val loading by crimeViewModel.isLoadingMyReports.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
+
         if (loading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -52,26 +54,43 @@ fun MyReportScreen(
                 .padding(vertical = 8.dp, horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            items(items = myReports, key = { it.id }) { report ->
-                // Each row: title on left, "View details" on right
-                Row(
+
+            items(myReports, key = { it.id }) { report ->
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { navHostController.navigate("ReportDetails/${report.id}") }
-                        .padding(vertical = 14.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(vertical = 12.dp)
                 ) {
+
                     Text(
                         text = report.category ?: "Untitled",
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f)
+                        fontWeight = FontWeight.SemiBold
                     )
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    // 🕒 Human friendly time
                     Text(
-                        text = "View details",
-                        modifier = Modifier
-                            .padding(start = 8.dp)
+                        text = formatTimeAgo(report.created_at),
+                        color = Color.Gray,
+                        fontSize = 12.sp
                     )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            text = "View details",
+                            color = Color(0xFF007AFF)
+                        )
+                    }
                 }
+
                 Divider()
             }
         }
