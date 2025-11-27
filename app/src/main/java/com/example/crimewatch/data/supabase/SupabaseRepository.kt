@@ -24,9 +24,18 @@ class SupabaseRepository(
     private val reportsEndpoint = "${baseUrl}rest/v1/reports"
 
     suspend fun fetchReports(): List<ReportDto> {
-        val resp = api.getReports()
+        // call API without user filter
+        val resp = api.getReports(userIdFilter = null)
         if (resp.isSuccessful) return resp.body() ?: emptyList()
         else throw Exception("Failed to fetch reports: ${resp.code()} ${resp.errorBody()?.string()}")
+    }
+
+    suspend fun fetchReportsByUser(userId: String): List<ReportDto> {
+        // pass "eq.<userId>" so Supabase REST filters by equality
+        val filterValue = "eq.$userId"
+        val resp = api.getReports(userIdFilter = filterValue)
+        if (resp.isSuccessful) return resp.body() ?: emptyList()
+        else throw Exception("Failed to fetch user reports: ${resp.code()} ${resp.errorBody()?.string()}")
     }
 
     suspend fun fetchComments(reportId: String): List<CommentDto> {
@@ -126,4 +135,5 @@ class SupabaseRepository(
         val publicUrl = "${baseUrl}storage/v1/object/public/$objectPath"
         return publicUrl
     }
+
 }

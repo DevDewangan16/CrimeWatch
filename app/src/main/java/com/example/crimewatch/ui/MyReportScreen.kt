@@ -1,0 +1,79 @@
+package com.example.crimewatch.ui
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import com.example.crimewatch.data.supabase.ReportDto
+
+@Composable
+fun MyReportScreen(
+    crimeViewModel: CrimeViewModel,
+    navHostController: NavHostController
+) {
+    // load user's reports when this screen enters composition
+    LaunchedEffect(key1 = crimeViewModel.user) {
+        crimeViewModel.loadMyReports()
+    }
+
+    val myReports by crimeViewModel.myReports.collectAsState()
+    val loading by crimeViewModel.isLoadingMyReports.collectAsState()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (loading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+            return@Box
+        }
+
+        if (myReports.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("No reports yet", fontWeight = FontWeight.Medium)
+            }
+            return@Box
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 8.dp, horizontal = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            items(items = myReports, key = { it.id }) { report ->
+                // Each row: title on left, "View details" on right
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navHostController.navigate("ReportDetails/${report.id}") }
+                        .padding(vertical = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = report.category ?: "Untitled",
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "View details",
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                    )
+                }
+                Divider()
+            }
+        }
+    }
+}

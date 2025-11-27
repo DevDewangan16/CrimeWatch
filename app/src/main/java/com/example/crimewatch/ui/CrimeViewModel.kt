@@ -71,6 +71,13 @@ class CrimeViewModel(application: Application) : AndroidViewModel(application) {
     private val _submitResult = MutableStateFlow<String?>(null) // "success" or error message
     val submitResult: StateFlow<String?> = _submitResult
 
+    private val _myReports = MutableStateFlow<List<com.example.crimewatch.data.supabase.ReportDto>>(emptyList())
+    val myReports: StateFlow<List<com.example.crimewatch.data.supabase.ReportDto>> = _myReports
+
+    private val _isLoadingMyReports = MutableStateFlow(false)
+    val isLoadingMyReports: StateFlow<Boolean> = _isLoadingMyReports
+
+
     init {
         // initial user
         _user.value = auth.currentUser
@@ -204,5 +211,23 @@ class CrimeViewModel(application: Application) : AndroidViewModel(application) {
     /** Reset submitResult so dialogs don't reappear */
     fun resetSubmitResult() {
         _submitResult.value = null
+    }
+
+    fun loadMyReports() {
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                _isLoadingMyReports.value = true
+                val list = withContext(Dispatchers.IO) {
+                    repository.fetchReportsByUser(uid)
+                }
+                _myReports.value = list
+            } catch (e: Exception) {
+                // handle or log error
+                _myReports.value = emptyList()
+            } finally {
+                _isLoadingMyReports.value = false
+            }
+        }
     }
 }

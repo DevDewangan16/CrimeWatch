@@ -179,6 +179,10 @@ fun CrimeApp(
                 )
             }
 
+            composable(route = CrimeAppScreen.MyReport.name) {
+                MyReportScreen(crimeViewModel = crimeViewModel, navHostController = navHostController)
+            }
+
         }
 
         if (logoutClicked){

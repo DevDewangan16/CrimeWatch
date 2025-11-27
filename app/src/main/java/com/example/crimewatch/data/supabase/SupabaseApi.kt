@@ -51,7 +51,9 @@ interface SupabaseApi {
     @GET("rest/v1/reports")
     suspend fun getReports(
         @Query("select") select: String = "*",
-        @Query("order") order: String = "created_at.desc"
+        @Query("order") order: String = "created_at.desc",
+        // Send filter like "eq.<userId>" (Retrofit will include it as user_id=eq.<userId>)
+        @Query("user_id") userIdFilter: String? = null
     ): Response<List<ReportDto>>
 
     // fetch comments for a report (report_id=eq.<id>)
@@ -66,7 +68,7 @@ interface SupabaseApi {
         @Query("report_id") reportEq: String // pass "eq.<reportId>"
     ): Response<List<VoteDto>>
 
-    // insert report
+    // insert report (we post to full URL via @Url)
     @Headers("Content-Type: application/json", "Prefer: return=representation")
     @POST
     suspend fun insertReport(
