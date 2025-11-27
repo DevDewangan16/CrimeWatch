@@ -78,7 +78,7 @@ fun HomeScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (isLoading) {
                         // small inline loader
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color(0xFF2196F3))
                         Spacer(modifier = Modifier.width(12.dp))
                     }
                     IconButton(onClick = { reportsViewModel.refreshReports() }) {
@@ -109,7 +109,7 @@ fun HomeScreen(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = Color(0xFF2196F3))
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("Refreshing...")
                     }

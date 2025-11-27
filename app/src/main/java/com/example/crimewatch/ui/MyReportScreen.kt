@@ -36,7 +36,7 @@ fun MyReportScreen(
 
         if (loading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Color(0xFF2196F3))
             }
             return@Box
         }
@@ -47,12 +47,14 @@ fun MyReportScreen(
             }
             return@Box
         }
-        
+
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 8.dp, horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+            // Reserve space at top so items don't appear under the TopAppBar.
+            // 80.dp is a safe height (top appbar + some margin). Adjust if your appbar height differs.
+            contentPadding = PaddingValues(top = 85.dp, bottom = 16.dp)
         ) {
 
             items(myReports, key = { it.id }) { report ->
@@ -60,7 +62,7 @@ fun MyReportScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { navHostController.navigate("ReportDetails/${report.id}") }
-                        .padding(vertical = 12.dp)
+                        .padding(horizontal = 12.dp, vertical = 12.dp)
                 ) {
 
                     Text(
