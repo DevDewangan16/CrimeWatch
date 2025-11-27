@@ -8,9 +8,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object SupabaseClient {
 
-    fun create(supabaseUrl: String, anonKey: String): SupabaseApi {
+    fun create(baseUrl: String, anonKey: String): SupabaseApi {
         val logging = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
-
         val authInterceptor = Interceptor { chain ->
             val req = chain.request().newBuilder()
                 .addHeader("apikey", anonKey)
@@ -25,7 +24,7 @@ object SupabaseClient {
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(supabaseUrl) // must end with /
+            .baseUrl(baseUrl)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
