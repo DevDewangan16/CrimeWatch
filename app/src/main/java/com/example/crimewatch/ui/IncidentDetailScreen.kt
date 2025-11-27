@@ -445,7 +445,7 @@ fun IncidentDetailScreen(
             }
 
             // Bottom Spacing
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(50.dp))
         }
     }
 }

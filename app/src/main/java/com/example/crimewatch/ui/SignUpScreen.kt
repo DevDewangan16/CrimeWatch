@@ -2,39 +2,29 @@
 package com.example.crimewatch.ui
 
 import android.content.Intent
-import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -48,15 +38,12 @@ import com.google.android.gms.common.api.ApiException
 fun SignUpScreen(
     crimeViewModel: CrimeViewModel,
     navHostController: NavHostController,
-    webClientId: String // pass from stringResource(R.string.default_web_client_id)
+    webClientId: String
 ) {
     val context = LocalContext.current
     val authState by crimeViewModel.authState.collectAsState()
-
-    // Use the helper from GoogleSignInUtils.kt
     val googleClient = remember { getGoogleSignInClient(context, webClientId) }
 
-    // Launcher for the Google Sign-In activity result
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { activityResult ->
@@ -73,11 +60,9 @@ fun SignUpScreen(
                         }
                     }
                 }
-            } else {
-                // handle missing token if desired
             }
         } catch (e: ApiException) {
-            // handle error (log or set viewModel error)
+            // Handle error
         }
     }
 
@@ -92,125 +77,249 @@ fun SignUpScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xffE53131))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF4CAF50),
+                        Color(0xFF388E3C)
+                    )
+                )
+            )
     ) {
-
-        // Header Background
+        // Decorative circles background
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .size(320.dp)
-                .background(
-                    color = Color(0xffBF1F1F),
-                    shape = RoundedCornerShape(bottomStart = 90.dp, bottomEnd = 90.dp)
-                )
-        )
-
-        // Main Card
-        Card(
-            modifier = Modifier
-                .padding(horizontal = 28.dp)
-                .padding(top = 150.dp)
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+                .height(300.dp)
         ) {
-
-            Column(
+            // Large circle top left
+            Box(
                 modifier = Modifier
-                    .padding(22.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                    .size(220.dp)
+                    .offset(x = (-80).dp, y = (-40).dp)
+                    .background(
+                        color = Color.White.copy(alpha = 0.1f),
+                        shape = androidx.compose.foundation.shape.CircleShape
+                    )
+            )
+            // Small circle top right
+            Box(
+                modifier = Modifier
+                    .size(140.dp)
+                    .offset(x = 250.dp, y = 80.dp)
+                    .background(
+                        color = Color.White.copy(alpha = 0.08f),
+                        shape = androidx.compose.foundation.shape.CircleShape
+                    )
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Main Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-
-                // Logo
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "Logo",
-                    modifier = Modifier.size(180.dp),
-                    contentScale = ContentScale.Fit
-                )
-
-                Text(
-                    text = "Create Account",
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xffE53131),
-                    textAlign = TextAlign.Center
-                )
-
-                Text(
-                    text = "Join CrimeWatch and stay informed.",
-                    fontSize = 16.sp,
-                    color = Color(0xFF4A4A4A),
-                    textAlign = TextAlign.Center
-                )
-
-                OutlinedButton(
-                    onClick = {
-                        // Launch the intent from the GoogleSignInClient instance
-                        val signInIntent = googleClient.signInIntent
-                        googleClient.signOut().addOnCompleteListener {
-                            launcher.launch(signInIntent)
-                        }
-                    },
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(55.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.5.dp, Color(0xffE53131))
+                        .padding(32.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.google_icon),
-                        contentDescription = "Google Icon",
-                        modifier = Modifier.size(22.dp)
-                    )
-                    Text(
-                        text = "Continue with Google",
-                        fontSize = 18.sp,
-                        color = Color.Black,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                }
+                    // Logo with background
+                    Surface(
+                        modifier = Modifier.size(120.dp),
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        color = Color(0xFFF1F8E9),
+                        shadowElevation = 4.dp
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(20.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.logo),
+                                contentDescription = "Logo",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                    }
 
-                if (authState.isLoading) {
-                    CircularProgressIndicator()
-                }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                authState.error?.let { err ->
+                    // Title
                     Text(
-                        text = err,
-                        fontSize = 14.sp,
-                        color = Color.Red,
+                        text = "Create Account",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1A1A),
                         textAlign = TextAlign.Center
                     )
-                }
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                    // Subtitle
                     Text(
-                        text = "Already have an account?",
-                        fontSize = 16.sp,
-                        color = Color(0xFF6C6C6C)
+                        text = "Join CrimeWatch and help keep\nyour community safe",
+                        fontSize = 15.sp,
+                        color = Color(0xFF666666),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 22.sp
                     )
 
-                    Text(
-                        text = "Sign In",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xffE53131),
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Google Sign Up Button
+                    Button(
+                        onClick = {
+                            val signInIntent = googleClient.signInIntent
+                            googleClient.signOut().addOnCompleteListener {
+                                launcher.launch(signInIntent)
+                            }
+                        },
                         modifier = Modifier
-                            .padding(top = 4.dp)
-                            .clickable {
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 2.dp,
+                            pressedElevation = 4.dp
+                        ),
+                        border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                        enabled = !authState.isLoading
+                    ) {
+                        if (authState.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color(0xFF4CAF50),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.google_icon),
+                                    contentDescription = "Google Icon",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Text(
+                                    text = "Sign up with Google",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF1A1A1A)
+                                )
+                            }
+                        }
+                    }
+
+                    // Error message
+                    authState.error?.let { err ->
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFFFFEBEE)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Warning,
+                                    contentDescription = null,
+                                    tint = Color(0xFFD32F2F),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = err,
+                                    fontSize = 13.sp,
+                                    color = Color(0xFFD32F2F),
+                                    lineHeight = 18.sp
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Terms and Privacy
+                    Text(
+                        text = "By signing up, you agree to our Terms of Service and Privacy Policy",
+                        fontSize = 12.sp,
+                        color = Color(0xFF999999),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 16.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Divider with text
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Divider(
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFFE0E0E0)
+                        )
+                        Text(
+                            text = "OR",
+                            fontSize = 12.sp,
+                            color = Color(0xFF999999),
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                        Divider(
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFFE0E0E0)
+                        )
+                    }
+
+                    // Sign In prompt
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Already have an account? ",
+                            fontSize = 14.sp,
+                            color = Color(0xFF666666)
+                        )
+                        Text(
+                            text = "Sign In",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF4CAF50),
+                            modifier = Modifier.clickable {
                                 navHostController.navigate(CrimeAppScreen.SignIn.name)
                             }
-                    )
+                        )
+                    }
                 }
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Bottom tagline
+            Text(
+                text = "Join thousands protecting their communities",
+                fontSize = 13.sp,
+                color = Color.White.copy(alpha = 0.9f),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
