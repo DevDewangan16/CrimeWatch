@@ -66,204 +66,126 @@ fun ReportScreen(
     crimeViewModel: CrimeViewModel,
     navHostController: NavHostController
 ) {
-    // Collect ViewModel state
+    // ViewModel-backed state
     val selectedCategory by crimeViewModel.selectedCategory.collectAsState()
     val description by crimeViewModel.description.collectAsState()
     val locationText by crimeViewModel.locationText.collectAsState()
     val pickedMediaUrl by crimeViewModel.pickedMediaUrl.collectAsState()
-
     val isSubmitting by crimeViewModel.isSubmitting.collectAsState()
     val submitResult by crimeViewModel.submitResult.collectAsState()
 
-    // Local UI-only state
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     var showCategoryDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showFailureDialog by remember { mutableStateOf(false) }
 
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    // Media picker (returns Uri). For now we store uri.toString() in ViewModel as placeholder.
-    val mediaPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
+    // media picker
+    val mediaPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            // TODO: upload the Uri to Supabase storage and set the returned public URL into ViewModel:
-            // crimeViewModel.pickedMediaUrl.value = uploadedPublicUrl
-            // For quick testing, we store the uri string as placeholder:
-            crimeViewModel.pickedMediaUrl.value = uri.toString()
+            // upload and set pickedMediaUrl in viewModel
+            crimeViewModel.uploadThenSubmit(uri)
         }
     }
 
-    // Categories (can be moved to ViewModel if you want)
-    val categories = listOf(
-        "Municipal Complaints",
-        "Theft",
-        "Accident",
-        "Harassment",
-        "Vandalism",
-        "Other"
-    )
-
-    // React to submitResult from ViewModel: show dialogs accordingly
+    // react to submitResult
     LaunchedEffect(submitResult) {
         when (submitResult) {
-            null -> {
-                // nothing
-            }
+            null -> {}
             "success" -> {
                 showSuccessDialog = true
-                // clear result in viewModel if you like (optional)
-                // crimeViewModel.submitResult.value = null  // avoid if submitResult is StateFlow read-only
             }
             else -> {
-                // any non-null non-"success" text treated as error message
                 showFailureDialog = true
             }
         }
     }
 
-    // Main UI
-    Scaffold { innerPadding ->
-        val scrollState = rememberScrollState()
-
+    Scaffold { inner ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(inner)
                 .padding(horizontal = 20.dp, vertical = 12.dp)
-                .verticalScroll(scrollState)
+                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
-                .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            Text(text = "Report an Incident", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+            Text(text = "Report an Incident", fontSize = 26.sp)
             Text(text = "Help your community by reporting what you see.", fontSize = 16.sp)
 
-            // Category chooser
-            Text(text = "Select Categories", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(text = "Select Categories", fontSize = 18.sp)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.White)
-                    .borderRounded(red = true)
                     .clickable { showCategoryDialog = true },
                 contentAlignment = Alignment.CenterStart
             ) {
-                Text(
-                    text = selectedCategory ?: "Choose category",
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    fontSize = 18.sp,
-                    color = if (selectedCategory == null) Color.Gray else Color.Black
-                )
+                Text(text = selectedCategory ?: "Choose category", modifier = Modifier.padding(16.dp))
             }
 
-            // Description
-            Text(text = "Add Description", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Box(
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Add Description", fontSize = 18.sp)
+            TextField(
+                value = description,
+                onValueChange = { crimeViewModel.description.value = it },
+                placeholder = { Text("Describe what happened...") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.White)
-                    .borderRounded(red = true)
-                    .padding(6.dp)
-            ) {
-                TextField(
-                    value = description,
-                    onValueChange = { crimeViewModel.description.value = it },
-                    placeholder = { Text(text = "Describe what happened...") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp),
-                    colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent)
-                )
-            }
+            )
 
-            // Location
-            Text(text = "Location", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Location", fontSize = 18.sp)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White)
-                    .borderRounded(red = true),
+                    .background(Color.White),
                 contentAlignment = Alignment.CenterStart
             ) {
-                Text(text = locationText, modifier = Modifier.padding(horizontal = 16.dp), fontSize = 16.sp)
+                Text(text = locationText, modifier = Modifier.padding(16.dp))
             }
 
-            Button(
-                onClick = {
-                    // Hook real location logic here (FusedLocationProvider / Map)
-                    crimeViewModel.locationText.value = "Detected: Near Central Park"
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3AA76C))
-            ) {
-                Text(text = "Choose your Location", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = { crimeViewModel.locationText.value = "Detected: Near Central Park" }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                Text("Choose your Location")
             }
 
-            // Upload media
-            Text(text = "Upload Media", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Button(
-                onClick = { mediaPicker.launch("*/*") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3AA76C))
-            ) {
-                Text(text = "\uD83D\uDCF7 Add Photo or \uD83C\uDFA5 Add Video", fontSize = 18.sp, color = Color.White)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = "Upload Media", fontSize = 18.sp)
+            Button(onClick = { mediaPicker.launch("*/*") }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                Text("\uD83D\uDCF7 Add Photo or \uD83C\uDFA5 Add Video")
             }
-            pickedMediaUrl?.let { uriStr ->
-                Text(text = "Selected: ${uriStr.substringAfterLast('/')}", fontSize = 12.sp, color = Color.Gray)
+            pickedMediaUrl?.let { url ->
+                Text(text = "Selected: ${url.substringAfterLast('/')}", fontSize = 12.sp, color = Color.Gray)
             }
 
-            // Submit
-            Button(
-                onClick = {
-                    // client-side validation: ensure category and description
-                    if (selectedCategory.isNullOrBlank() || description.isBlank()) {
-                        // mark failure locally by setting an error result in ViewModel (or show snack)
-                        crimeViewModel.submitReport() // submitReport handles validation and will update submitResult
-                        return@Button
-                    }
-                    crimeViewModel.submitReport()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53131))
-            ) {
-                if (isSubmitting) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
-                } else {
-                    Text(text = "Submit Report", fontSize = 20.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                }
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(onClick = { crimeViewModel.submitReport() }, modifier = Modifier.fillMaxWidth().height(64.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53131))) {
+                if (isSubmitting) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                else Text("Submit Report", color = Color.White)
             }
 
-            // ensure content isn't hidden by bottom bar
             Spacer(modifier = Modifier.height(88.dp))
         }
     }
 
-    // Category dialog
     if (showCategoryDialog) {
-        CategorySelectionDialog(
-            categories = categories,
+        CategorySelectionDialog(categories = listOf("Municipal Complaints","Theft","Accident","Harassment","Vandalism","Other"),
             onSelect = {
                 crimeViewModel.selectedCategory.value = it
                 showCategoryDialog = false
-            },
-            onDismiss = { showCategoryDialog = false }
-        )
+            }, onDismiss = { showCategoryDialog = false })
     }
 
-    // Success dialog (driven by submitResult=="success")
     if (showSuccessDialog) {
         FullScreenMessageDialog(
             titleEmoji = "\u2705",
@@ -272,11 +194,10 @@ fun ReportScreen(
             positiveLabel = "OK",
             onPositive = {
                 showSuccessDialog = false
-                // optionally clear form
+                // clear form
                 crimeViewModel.selectedCategory.value = null
                 crimeViewModel.description.value = ""
                 crimeViewModel.pickedMediaUrl.value = null
-                // navigate home
                 navHostController.navigate(CrimeAppScreen.Home.name) {
                     popUpTo(CrimeAppScreen.Report.name) { inclusive = true }
                 }
@@ -284,7 +205,6 @@ fun ReportScreen(
         )
     }
 
-    // Failure dialog (driven by submitResult != null && != "success")
     if (showFailureDialog) {
         FullScreenMessageDialog(
             titleEmoji = "\u26A0",
@@ -293,7 +213,6 @@ fun ReportScreen(
             positiveLabel = "RETRY",
             onPositive = {
                 showFailureDialog = false
-                // allow user to retry; submitReport() will re-run when triggered
             }
         )
     }

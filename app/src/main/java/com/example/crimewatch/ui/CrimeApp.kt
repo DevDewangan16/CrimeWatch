@@ -4,8 +4,10 @@ package com.example.crimewatch.ui
 import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,10 +37,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.crimewatch.R
 import com.google.firebase.auth.FirebaseAuth
 
@@ -57,6 +61,7 @@ private val auth = FirebaseAuth.getInstance()
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrimeApp(
+    reportsViewModel: ReportsViewModel= viewModel(),
     crimeViewModel: CrimeViewModel = viewModel(),
     navHostController: NavHostController = rememberNavController()
 ) {
@@ -73,10 +78,21 @@ fun CrimeApp(
         crimeViewModel.setUser(auth.currentUser) // safe one-time init
     }
 
+    // get current backstack entry
     val backStackEntry by navHostController.currentBackStackEntryAsState()
-    val currentScreen =CrimeAppScreen.valueOf(
-        backStackEntry?.destination?.route?:CrimeAppScreen.Home.name
-    )
+    val rawRoute = backStackEntry?.destination?.route ?: CrimeAppScreen.Home.name
+    val baseRoute = rawRoute.substringBefore("/")
+
+    val currentScreen = try {
+        when (baseRoute) {
+            "ReportDetails" -> CrimeAppScreen.Report
+            else -> CrimeAppScreen.valueOf(baseRoute)
+        }
+    } catch (e: Exception) {
+        CrimeAppScreen.Home
+    }
+
+
     canNavigateBack=navHostController.previousBackStackEntry != null
 
 
@@ -143,13 +159,26 @@ fun CrimeApp(
 
             composable(CrimeAppScreen.Home.name) {
                 HomeScreen(
-                    crimeViewModel = crimeViewModel,
-                    navHostController = navHostController
+                    reportsViewModel=reportsViewModel,navHostController
                 )
             }
             composable(route = CrimeAppScreen.Report.name){
                 ReportScreen(crimeViewModel = crimeViewModel, navHostController = navHostController)
             }
+            composable(
+                route = "ReportDetails/{reportId}",
+                arguments = listOf(
+                    navArgument("reportId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("reportId") ?: return@composable
+                IncidentDetailScreen(
+                    reportId = id,
+                    reportsViewModel,
+                    navHostController = navHostController
+                )
+            }
+
         }
 
         if (logoutClicked){
